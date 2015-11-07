@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <?php
 
 require_once 'vendor/autoload.php';
@@ -15,38 +14,45 @@ $view->parserOptions = array(
 $view->setTemplatesDirectory(dirname(__FILE__) . '/templates');
 
 $app->get('/shout', function() use ($app) {
-    $app->render("shout.html.twig");
+    $app->render('shout.html.twig');
 });
 
 $app->post('/shout', function() use ($app) {
     $message = $app->request->params('message');
 
-    $errorList = array();
     if ((strlen($message) == 0)){
-        array_push($errorList, "Message can't be empty you fool!");
+        $error = 'Message can not be empty you fool!';
     } else {
-        file_put_contents("./fileput.txt", $message . "\n", FILE_APPEND); // default is overwrite
+        $error = '';
+        file_put_contents('./fileput.txt', $message . "\n", FILE_APPEND); // default is overwrite
     }
-    //
-    if (!$errorList) {    // no errors
-        $document = file_get_contents("./fileput.txt");
-        $lines = explode("\n", $document);
-        //print_r($lines);
-        $lines_ordered = array();
-        
-        
-        $that = count($lines) - 1;
-        //echo'<br>' . $that;
-        
-        for($q = count($lines) - 1; $q >= 1 ; $q--){
-            array_push($lines_ordered, $lines[$q]);
+    
+    $document = file_get_contents('./fileput.txt');
+    $lines = explode("\n", $document);
+    
+    $count = 0;
+    $lines_ordered = array();
+    
+    /*
+    echo 'count($lines) - 2 = ' . (count($lines) - 2) . '<br>';
+    echo 'print_r($lines) = '; 
+    print_r($lines) ;
+    echo '<br>';
+    */
+    
+    for($q = count($lines) - 2; $q > -1 ; $q--){
+        $count ++;
+        //echo '$q = ' . $q . '<br>';
+        if ($count > 10) {
+            break;
         }
-        print_r($lines_ordered);
-        $app->render("shout.html.twig", array('messageList' => $lines_ordered));        
-    } else {              // empty message
-        $app->render("shout.html.twig", array('error' => "Message can't be empty you fool!", 'messageList' => $lines));
+        array_push($lines_ordered, $lines[$q]);
     }
+    $app->render('shout.html.twig', array('messageList' => $lines_ordered, 'error' => $error));
 });
 
+$app->get('/', function() {
+    echo "This is the index page";
+});
 
 $app->run();
