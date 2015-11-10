@@ -3,8 +3,13 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+<<<<<<< HEAD
             <file>file:/Users/mobile/NetBeansProjects/ShoutBox/index.php</file>
             <file>file:/Users/mobile/NetBeansProjects/ShoutBox/templates/shout.html.twig</file>
+=======
+            <file>file:/home/user/NetBeansProjects/shoutbox/index.php</file>
+            <file>file:/home/user/NetBeansProjects/shoutbox/fileput.txt</file>
+>>>>>>> dbb7cd18c952ec6bd56f4eb47a0d6992657c71f9
         </group>
     </open-files>
 </project-private>

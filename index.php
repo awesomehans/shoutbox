@@ -1,11 +1,10 @@
-<!DOCTYPE html>
 <?php
 
 require_once 'vendor/autoload.php';
 
-$app = new \Slim\Slim(array(
-    'view' => new \Slim\Views\Twig()
-        ));
+define('DATA_FILE', './fileput.txt');
+
+$app = new \Slim\Slim(array('view' => new \Slim\Views\Twig()));
 
 $view = $app->view();
 $view->parserOptions = array(
@@ -15,38 +14,41 @@ $view->parserOptions = array(
 $view->setTemplatesDirectory(dirname(__FILE__) . '/templates');
 
 $app->get('/shout', function() use ($app) {
-    $app->render("shout.html.twig");
+    $app->render('shout.html.twig');
 });
 
 $app->post('/shout', function() use ($app) {
     $message = $app->request->params('message');
 
-    $errorList = array();
     if ((strlen($message) == 0)){
-        array_push($errorList, "Message can't be empty you fool!");
+        $error = 'Message can\'t be empty you fool!';
     } else {
-        file_put_contents("./fileput.txt", $message . "\n", FILE_APPEND); // default is overwrite
+        $error = '';
+        if (file_exists(DATA_FILE)){
+            file_put_contents(DATA_FILE, "\n" . $message, FILE_APPEND); // if the file exists we need a new line
+        } else {
+            file_put_contents(DATA_FILE, $message, FILE_APPEND); // if the file doesn't exist we don't need a new line
+        }
     }
-    //
-    if (!$errorList) {    // no errors
-        $document = file_get_contents("./fileput.txt");
-        $lines = explode("\n", $document);
-        //print_r($lines);
-        $lines_ordered = array();
-        
-        
-        $that = count($lines) - 1;
-        //echo'<br>' . $that;
-        
-        for($q = count($lines) - 1; $q >= 1 ; $q--){
+    
+    $lines_ordered = array();
+    if (file_exists(DATA_FILE)){
+        $lines = file(DATA_FILE);
+
+        $count = 0;
+        for($q = count($lines) - 1; $q > -1 ; $q--){
+            $count ++;
+            if ($count > 10) {
+                break;
+            }
             array_push($lines_ordered, $lines[$q]);
         }
-        print_r($lines_ordered);
-        $app->render("shout.html.twig", array('messageList' => $lines_ordered));        
-    } else {              // empty message
-        $app->render("shout.html.twig", array('error' => "Message can't be empty you fool!", 'messageList' => $lines));
     }
+    $app->render('shout.html.twig', array('messageList' => $lines_ordered, 'error' => $error));
 });
 
+$app->get('/', function() use ($app){
+    $app->redirect('/shout');
+});
 
 $app->run();
