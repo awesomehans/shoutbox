@@ -2,9 +2,9 @@
 
 require_once 'vendor/autoload.php';
 
-$app = new \Slim\Slim(array(
-    'view' => new \Slim\Views\Twig()
-        ));
+define('DATA_FILE', './fileput.txt');
+
+$app = new \Slim\Slim(array('view' => new \Slim\Views\Twig()));
 
 $view = $app->view();
 $view->parserOptions = array(
@@ -21,38 +21,34 @@ $app->post('/shout', function() use ($app) {
     $message = $app->request->params('message');
 
     if ((strlen($message) == 0)){
-        $error = 'Message can not be empty you fool!';
+        $error = 'Message can\'t be empty you fool!';
     } else {
         $error = '';
-        file_put_contents('./fileput.txt', $message . "\n", FILE_APPEND); // default is overwrite
+        if (file_exists(DATA_FILE)){
+            file_put_contents(DATA_FILE, "\n" . $message, FILE_APPEND); // if the file exists we need a new line
+        } else {
+            file_put_contents(DATA_FILE, $message, FILE_APPEND); // if the file doesn't exist we don't need a new line
+        }
     }
     
-    $document = file_get_contents('./fileput.txt');
-    $lines = explode("\n", $document);
-    
-    $count = 0;
     $lines_ordered = array();
-    
-    /*
-    echo 'count($lines) - 2 = ' . (count($lines) - 2) . '<br>';
-    echo 'print_r($lines) = '; 
-    print_r($lines) ;
-    echo '<br>';
-    */
-    
-    for($q = count($lines) - 2; $q > -1 ; $q--){
-        $count ++;
-        //echo '$q = ' . $q . '<br>';
-        if ($count > 10) {
-            break;
+    if (file_exists(DATA_FILE)){
+        $lines = file(DATA_FILE);
+
+        $count = 0;
+        for($q = count($lines) - 1; $q > -1 ; $q--){
+            $count ++;
+            if ($count > 10) {
+                break;
+            }
+            array_push($lines_ordered, $lines[$q]);
         }
-        array_push($lines_ordered, $lines[$q]);
     }
     $app->render('shout.html.twig', array('messageList' => $lines_ordered, 'error' => $error));
 });
 
-$app->get('/', function() {
-    echo "This is the index page";
+$app->get('/', function() use ($app){
+    $app->redirect('/shout');
 });
 
 $app->run();
